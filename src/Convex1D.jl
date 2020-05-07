@@ -76,14 +76,7 @@ end
 
         converged = (x5 - x1) < atol
         if converged
-            fs_opt = (f1,f3,f5)
-            xs_opt = (x1,x3,x5)
-            i_opt = argmin(fs_opt)
-            return (
-                minimizer = xs_opt[i_opt],
-                minimum   = fs_opt[i_opt],
-                nevals    = nevals,
-            )
+            return minimize_interval_subdivision_finish((x1,x3,x5), (f1,f3,f5), nevals)
         end
 
         x2 = middle(x1, x3)
@@ -93,6 +86,40 @@ end
         xs = (x1,x2,x3,x4,x5)
         fs = (f1,f2,f3,f4,f5)
     end
+end
+
+function minimize_interval_subdivision_finish(xs::NTuple{3}, fs::NTuple{3}, nevals)
+    x1,x2,x3 = xs
+    f1,f2,f3 = fs
+    i_opt    = argmin(fs)
+    # m_left   = (f2 - f1) / (x2 - x1)
+    # m_right  = (f3 - f2) / (x3 - x2)
+    # y_left   = f2 - m_right * (x2 - x1)
+    # y_right  = f2 + m_left  * (x3 - x2)
+    # @assert y_left <= f1
+    # @assert y_right <= f3
+    if i_opt == 1
+        xbounds = (x1, x2)
+        # ybounds = (y_left, f1)
+    elseif i_opt == 2
+        xbounds = (x1, x3)
+        # ybounds = minmax(y_left, y_right)
+    elseif i_opt == 3
+        xbounds = (x2, x3)
+        # ybounds = (y_right, f3)
+    else
+        error("Unreachable")
+    end
+    @assert issorted(xbounds)
+    # @assert issorted(ybounds)
+    return (
+        minimizer = xs[i_opt],
+        minimum   = fs[i_opt],
+        nevals    = nevals,
+        xbounds   = xbounds,
+        # ybounds   = ybounds,
+    )
+
 end
 
 end # module
