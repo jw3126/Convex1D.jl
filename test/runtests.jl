@@ -6,6 +6,12 @@ using Test
     @test res.minimizer ≈ 0 atol=1e-3
     @test res.minimum === res.minimizer^2
 
+    x = [1,2]
+    y = [2,4]
+    f = c -> sum(abs, c*x - y)
+    sol = minimize(f, (-10, 10), atol=1e-10)
+    @test sol.minimizer ≈ 2 atol=1e-10
+
     for _ in 1:100
         x_opt = randn()
         f_opt = randn()
