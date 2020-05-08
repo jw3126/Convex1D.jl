@@ -54,3 +54,15 @@ using Test
         @test f(x_res) == f_res
     end
 end
+
+@testset "minimize no domain" begin
+    for scale in [10^x for x in -10.0:10.0]
+        x_opt = scale*randn()
+        f = x -> abs(x - x_opt)
+        x_lo, x_hi = Convex1D.find_initial_domain(f)
+        @test x_lo <= x_opt <= x_hi
+        @test x_hi - x_lo < 8*(scale+1)
+        sol = minimize(f, atol=sqrt(eps(scale)))
+        @test sol.minimizer ≈ x_opt atol=sqrt(eps(scale))
+    end
+end

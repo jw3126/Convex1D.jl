@@ -10,7 +10,55 @@ end
 
 function middle(x,y)
     # lets not depend on Statistics for this
-    1//2 * (x + y)
+    mid = (1//2 * x) + (1//2*y)
+    @assert x < mid <y
+    mid
+end
+
+function find_initial_domain(f, (x_left, x_right)=(-1, 1))
+
+    function grow_once(;x_from,y_from,x_to,y_to)
+        if y_to > y_from
+            return (x_from=x_from, y_from=y_from, x_to=x_to, y_to=y_to, converged=true)
+        end
+        step = x_to - x_from
+        if step == 0
+            msg = """
+            Zero step in domain growing:
+            x_from = $x_from
+            y_from = $y_from
+            x_to   = $x_to
+            y_to   = $y_to
+            step   = $step
+            """
+            error(msg)
+        end
+        x_to_new = step + x_to
+        y_to_new = f(x_to_new)
+        return (x_from=x_from, y_from=y_from, x_to=x_to_new, y_to=y_to_new, converged=false)
+    end
+
+    function grow(;x_from, y_from, x_to, y_to)
+        item = grow_once(x_from=x_from, y_from=y_from, x_to=x_to, y_to=y_to)
+        while !(item.converged)
+            item = grow_once(x_from=item.x_from, y_from=item.y_from, x_to=item.x_to, y_to=item.y_to)
+        end
+        return item
+    end
+
+    x_left = float(x_left)
+    x_right = float(x_right)
+    x_center = middle(x_left, x_right)
+    @assert x_left < x_center < x_right
+    y_left = f(x_left)
+    y_center = f(x_center)
+    y_right = f(x_right)
+    left = grow(x_from=x_center, y_from=y_center, x_to=x_left, y_to=y_left)
+    right = grow(x_from=x_center, y_from=y_center, x_to=x_right, y_to=y_right)
+    @assert left.x_to  < x_center < right.x_to
+    @assert left.y_to  >= y_center
+    @assert right.y_to >= y_center
+    (left.x_to, right.x_to)
 end
 
 """
@@ -23,7 +71,7 @@ Minimize a convex function `f` on the interval `[x_left, x_right]`.
 * atol: Search tolereance, such that `isapprox(true_minimizer, sol.minimizer, atol=atol)`
 will hold.
 """
-function minimize(f, (x_left, x_right);
+function minimize(f, (x_left, x_right)=find_initial_domain(f);
         atol=nothing
     )
     if atol === nothing
@@ -46,7 +94,7 @@ function minimize(f, (x_left, x_right);
     minimize_interval_subdivision_kernel(f, xs, fs, atol)
 end
 
-@noinline function minimize_interval_subdivision_kernel(f, xs, fs, atol)
+@noinline function minimize_interval_subdivision_kernel(f::F, xs, fs, atol) where {F}
     nevals = 5
     while true
         i = argmin(fs)
@@ -92,6 +140,7 @@ function minimize_interval_subdivision_finish(xs::NTuple{3}, fs::NTuple{3}, neva
     x1,x2,x3 = xs
     f1,f2,f3 = fs
     i_opt    = argmin(fs)
+    # calculations for ybounds are too unstable
     # m_left   = (f2 - f1) / (x2 - x1)
     # m_right  = (f3 - f2) / (x3 - x2)
     # y_left   = f2 - m_right * (x2 - x1)
