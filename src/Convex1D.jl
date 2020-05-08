@@ -74,6 +74,14 @@ will hold.
 function minimize(f, (x_left, x_right)=find_initial_domain(f);
         atol=nothing
     )
+    if !(x_left < x_right)
+        msg = """
+        x_left < x_right must hold. Got
+        x_left  = $x_left
+        x_right = $x_right
+        """
+        throw(ArgumentError(msg))
+    end
     if atol === nothing
         atol = max(sqrt(eps(x_left)), sqrt(eps(x_right)))
     end
