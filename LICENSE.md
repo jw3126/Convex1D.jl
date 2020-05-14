@@ -1,4 +1,4 @@
-The Convex1D.jl package is licensed under the MIT "Expat" License:
+The Convex1d.jl package is licensed under the MIT "Expat" License:
 
 > Copyright (c) 2020: Jan Weidner.
 >

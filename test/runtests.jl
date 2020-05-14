@@ -1,4 +1,4 @@
-using Convex1D
+using Convex1d
 using Test
 
 @testset "minimize" begin
@@ -59,7 +59,7 @@ end
     for scale in [10^x for x in -10.0:10.0]
         x_opt = scale*randn()
         f = x -> abs(x - x_opt)
-        x_lo, x_hi = Convex1D.find_initial_domain(f)
+        x_lo, x_hi = Convex1d.find_initial_domain(f)
         @test x_lo <= x_opt <= x_hi
         @test x_hi - x_lo < 8*(scale+1)
         sol = minimize(f, atol=sqrt(eps(scale)))

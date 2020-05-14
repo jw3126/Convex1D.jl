@@ -1,4 +1,4 @@
-name = "Convex1D"
+name = "Convex1d"
 uuid = "d65ab6ab-6660-44ea-a7a3-f3acdcb1c2e6"
 authors = ["Jan Weidner <jw3126@gmail.com>"]
 version = "0.1.0"
